@@ -1,0 +1,274 @@
+---
+title: "Final"
+author: "mwebers2"
+date: "12/19/2019"
+output: html_document
+runtime: shiny
+---
+
+```{r setup, include=FALSE, echo=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, message = FALSE, warning = FALSE, echo = FALSE}
+library(shinythemes)
+library(shiny)
+library(readr)
+library(dplyr)
+library(wordcloud2)
+library(tm)
+library(tidyverse)
+profiles <- read_csv("https://uofi.box.com/shared/static/oy32nc373w4jqz3kummksnw6wvhfrl7a.csv")
+
+ui <- fluidPage(
+  
+  titlePanel("Who is on OkCupid?"),
+  mainPanel("Quinn Dellinger, Elizabeth Kepner and Matthew Weberski",
+    tabsetPanel(
+      
+      tabPanel("Height",
+             fluidRow(
+               column(width = 3,
+                      selectInput("menu","Choose a variable:",
+                                  c("sex","job","body_type"))),
+               column(width = 9, plotOutput("heightPlot")))),
+      
+      tabPanel("No Answer",
+             fluidRow(
+               column(width = 3,
+                      selectInput("dropdown","Choose a variable:",
+                                  c("sex","drinks","body_type", "drugs", "smokes", "diet", "orientation"))),
+               column(width = 12, plotOutput("noAnswer")))),
+      
+      tabPanel("Body Type",
+               h6("Breaking down the number of potential matches that can be found when searching for a specific body type and one additional charateristic."),
+             fluidRow(
+               column(width = 6, selectInput("body","Choose Body Type:",c(profiles$body_type)))),
+             fluidRow(
+               column(width = 6, selectInput("bodyfilter", "Choose Characteristic to Filter:", 
+                                            c("sex", "drinks", "smokes", "orientation", "status", "diet", "job")))),
+             fluidRow(
+               column(width = 12, plotOutput("bodyplot")))),
+      
+      tabPanel("Age",
+               h6("Finding potential matches in a specified age range given a charateristic to filter by."),
+             fluidRow(
+               column(width = 6, sliderInput("age","Choose Age Range:",min = 18, max = 110, value = c(18, 110)))),
+             fluidRow(
+               column(width = 6, selectInput("agefilter", "Choose Characteristic to Filter:", 
+                                            c("sex", "drinks", "smokes", "orientation", "status", "diet", "job", "body_type")))),
+             fluidRow(
+               column(width = 12, plotOutput("ageplot")))),
+      
+      
+      tabPanel("Character Count",
+               fluidRow(
+                 column(width = 3, selectInput("menu2",
+                                               "Choose a variable:",
+                                               c("smokes","drinks","sex"))),
+                 column(width = 9,plotOutput("wordCount")))),
+      
+      tabPanel("Word Cloud", 
+               fluidRow(
+                 column(width = 12, wordcloud2Output("wordCloud", height = 800))))
+      
+      ), width = 12))
+               
+          
+    
+
+
+server <- function(input, output) {
+  
+  output$heightPlot <- renderPlot({
+    dating <- profiles
+    choose <- input$menu
+    t2 <- data.frame()
+    if (choose == "sex") {
+      t2 <- aggregate(dating$height, list(dating$sex), mean, na.rm=TRUE)
+      colnames(t2)[2] <- "a"
+      hate <- ggplot(data = t2) +
+        geom_col(mapping = aes(x = Group.1, y = a, fill = Group.1)) +
+        coord_cartesian(ylim = c(50, 90)) + 
+        xlab("Sex") + ylab("Height in cm") + ggtitle("Average height between sexes") + 
+        theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+              panel.background = element_blank(), axis.text.x = element_blank(), legend.position = "bottom", 
+              plot.title = element_text(size=30)) + 
+        scale_fill_discrete(name = "Sex")
+    }
+    if (choose == "job") {
+      t2 <- aggregate(dating$height, list(dating$job), mean, na.rm=TRUE)
+      colnames(t2)[2] <- "a"
+      hate <- ggplot(data = t2) +
+        geom_col(mapping = aes(x = Group.1, y = a, fill = Group.1)) +
+        coord_cartesian(ylim = c(50, 90)) + 
+        xlab("Job") + ylab("Height in cm") + ggtitle("Average height between jobs") + 
+        theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+              panel.background = element_blank(), axis.text.x = element_blank(), legend.position = "bottom", 
+              plot.title = element_text(size=30)) + 
+        scale_fill_discrete(name = "Job") 
+    }
+    if (choose == "body_type") {
+      t2 <- aggregate(dating$height, list(dating$body_type), mean, na.rm=TRUE)
+      colnames(t2)[2] <- "a"
+      hate <- ggplot(data = t2) +
+        geom_col(mapping = aes(x = Group.1, y = a, fill = Group.1)) +
+        coord_cartesian(ylim = c(50, 90)) + 
+        xlab("Body Type") + ylab("Height in cm") + ggtitle("Average height between body types") + 
+        theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+              panel.background = element_blank(), axis.text.x = element_blank(), legend.position = "bottom", 
+              plot.title = element_text(size=30)) + 
+        scale_fill_discrete(name = "Body Type")
+    }
+    hate
+  })
+  
+  output$noAnswer <- renderPlot({
+    dating <- profiles
+    dating[dating==""]  <- NA
+    dating$empty <- rowSums(apply(is.na(dating), 2, as.numeric))
+    shelect <- input$dropdown
+    if (shelect == "sex") {
+      shok <- ggplot(data = subset(dating, !is.na(sex))) +
+        geom_histogram(mapping = aes(x = empty, fill = sex), bins = 20) +
+        xlim(0,20) + xlab("Count of empty answers") + ylab("Number of people") + 
+        ggtitle("Number of empty answers") + 
+        theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+              panel.background = element_blank(), legend.position = "bottom", 
+              plot.title = element_text(size=30)) + 
+        scale_fill_discrete(name = "Sex")
+    }
+    if (shelect == "drinks") {
+      shok <- ggplot(data = subset(dating, !is.na(drinks))) +
+        geom_histogram(mapping = aes(x = empty, fill = drinks), bins = 20) +
+        xlim(0,20) + xlab("Count of empty answers") + ylab("Number of people") + 
+        ggtitle("Number of empty answers") + 
+        theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+              panel.background = element_blank(), legend.position = "bottom", 
+               plot.title = element_text(size=30)) + 
+        scale_fill_discrete(name = "Drinks")
+    }
+    if (shelect == "body_type") {
+      shok <- ggplot(data = subset(dating, !is.na(body_type))) +
+        geom_histogram(mapping = aes(x = empty, fill = body_type), bins = 20) +
+        xlim(0,20) + xlab("Count of empty answers") + ylab("Number of people") + 
+        ggtitle("Number of empty answers") + 
+        theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+              panel.background = element_blank(), legend.position = "bottom", 
+              plot.title = element_text(size=30)) + 
+        scale_fill_discrete(name = "Body Type")
+    }
+    if (shelect == "drugs") {
+      shok <- ggplot(data = subset(dating, !is.na(drugs))) +
+        geom_histogram(mapping = aes(x = empty, fill = drugs), bins = 20) +
+        xlim(0,20) + xlab("Count of empty answers") + ylab("Number of people") + 
+        ggtitle("Number of empty answers") + 
+        theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+              panel.background = element_blank(), legend.position = "bottom", 
+              plot.title = element_text(size=30)) + 
+        scale_fill_discrete(name = "Drugs")
+    }
+    if (shelect == "smokes") {
+      shok <- ggplot(data = subset(dating, !is.na(smokes))) +
+        geom_histogram(mapping = aes(x = empty, fill = smokes), bins = 20) +
+        xlim(0,20) + xlab("Count of empty answers") + ylab("Number of people") + 
+        ggtitle("Number of empty answers") + 
+        theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+              panel.background = element_blank(), legend.position = "bottom", 
+              plot.title = element_text(size=30)) + 
+        scale_fill_discrete(name = "Smokes")
+    }
+    if (shelect == "diet") {
+      shok <- ggplot(data = subset(dating, !is.na(diet))) +
+        geom_histogram(mapping = aes(x = empty, fill = diet), bins = 20) +
+        xlim(0,20) + xlab("Count of empty answers") + ylab("Number of people") + 
+        ggtitle("Number of empty answers") + 
+        theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+              panel.background = element_blank(), legend.position = "bottom", 
+              plot.title = element_text(size=30)) + 
+        scale_fill_discrete(name = "Diet")
+    }
+    if (shelect == "orientation") {
+      shok <- ggplot(data = subset(dating, !is.na(orientation))) +
+        geom_histogram(mapping = aes(x = empty, fill = orientation), bins = 20) +
+        xlim(0,20) + xlab("Count of empty answers") + ylab("Number of people") + 
+        ggtitle("Number of empty answers") + 
+        theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+              panel.background = element_blank(), legend.position = "bottom", 
+              plot.title = element_text(size=30)) + 
+        scale_fill_discrete(name = "Orientation")
+    }
+    shok
+  })
+  
+  output$bodyplot <- renderPlot({
+    selectbody <- input$body
+    selectfilter <- input$bodyfilter
+    plotbodydata <- profiles %>% filter(body_type == selectbody)
+    ggplot(data = plotbodydata) + 
+      geom_bar(mapping = aes_string(x=selectfilter, fill = selectfilter)) +
+      xlab(selectfilter) +
+      ylab("Number of People") +
+      ggtitle(paste("Number of people of the body type", selectbody, "vs.", selectfilter)) +
+      theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+            panel.background = element_blank(), axis.text.x = element_blank())
+  })
+  output$ageplot <- renderPlot({
+    selectagelower <- input$age[1]
+    selectageupper <- input$age[2]
+    selectfilterage <- input$agefilter
+    plotagedata <- profiles %>% filter(age >= selectagelower & age <= selectageupper)
+    ggplot(data = plotagedata) + 
+      geom_bar(mapping = aes_string(x=selectfilterage, fill = selectfilterage)) +
+      xlab(selectfilterage) +
+      ylab("Number of People") +
+      ggtitle(paste("Number of people between", selectagelower, "and", selectageupper, "years old vs.", selectfilterage)) +
+      theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+            panel.background = element_blank(), axis.text.x = element_blank())
+  })
+  
+  output$wordCloud <- renderWordcloud2({
+    dating <- profiles
+    essays <- dating[,7:16]
+    essays <- apply(essays,2,as.character)
+    essays <- as.vector(essays)
+    idk <- Corpus(VectorSource(essays))
+    idk <- tm_map(idk, removeWords, stopwords("english"))
+    idk <- tm_map(idk, removePunctuation)
+    idk <- tm_map(idk, stripWhitespace)
+    tdm <- TermDocumentMatrix(idk)
+    sparse <- removeSparseTerms(tdm, .97)
+    mat <- as.matrix(sparse)
+    sorted <- sort(rowSums(mat),decreasing=TRUE)
+    data <- data.frame(word = names(sorted),freq=sorted)
+    set.seed(1234)
+    wordcloud2(data)
+  })
+  
+  output$wordCount <- renderPlot({
+    dating <- profiles
+    dating[dating == ""] <- NA
+    essays <- dating[,7:16]
+    essays <- apply(essays,2,as.character)
+    bruh <- apply(essays,2,nchar)
+    sums <- apply(bruh,1,sum)
+    dating$nchar <- sums
+    select <- input$menu2
+    ggplot(data = dating, aes(x = nchar)) +
+      geom_histogram(mapping = aes_string(fill = select)) +
+      xlim(0,20000) +
+      xlab("Character Count") +
+      ylab("People Count") +
+      ggtitle("Attributes by how much people write in their bios") +
+      theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+            panel.background = element_blank(), plot.title = element_text(size=25), legend.key.size = unit(.5,"inches"), 
+            legend.text = element_text(size = 15), legend.title = element_text(size = 15), axis.title = element_text(size = 20),
+            axis.text = element_text(size = 15))
+  }, height = 900)
+  
+
+}
+
+shinyApp(ui = ui, server = server, options = list(height = 1000))
+
+```

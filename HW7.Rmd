@@ -1,0 +1,141 @@
+---
+title: "Final"
+author: "mwebers2"
+date: "12/6/2019"
+output: html_document
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, echo=FALSE}
+library(shiny)
+library(readr)
+library(dplyr)
+ui <- fluidPage(
+  titlePanel("OkCupid"),
+      tabsetPanel(
+        
+        tabPanel("Body Type",
+           fluidRow(sidebarPanel(
+                    h4("Body Type"),
+                    selectInput("Characteristic", "characteristic",
+                                  c("gender", "drinks", "drugs", "diet"), multiple = TRUE),
+                    mainPanel(plotOutput("hist", height = 500))))), 
+        
+        tabPanel("Age",
+           fluidRow(sidebarPanel(width = 3,
+                    sliderInput("age", "Age:", min = 18, max = 110, value = c(25, 30)),
+                    mainPanel(plotOutput("hist", height = 500))))),
+        
+        
+        tabPanel("Word Map", 
+                 fluidRow(sidebarPanel(
+                    h4("Body Type"),
+                    selectInput("Characteristic", "characteristic",
+                                  c("age","gender"), multiple = TRUE),
+                    mainPanel(plotOutput("wordMap"))))),
+        
+        tabPanel("Word Count",
+                 fluidRow(
+                   column(width = 3,selectInput("menu","Choose a variable:",c("smokes","drinks","body_type"))),
+                   column(width = 9, plotOutput("wordCount")))),
+        
+        tabPanel("Height",plotOutput("heightPlot")),
+        tabPanel("No answer",plotOutput("noAnsPlot"))))
+
+server <- function(input, output) {
+  
+    output$bodyPlot <- renderPlot({
+      #plotting goes here
+    })
+    
+    output$agePlot <- renderPlot({
+      #go plot here
+    })
+    
+    output$wordMap <- renderPlot({
+      #just to hold space
+    })
+    
+    output$wordCount <- renderPlot({
+      library(tidyverse)
+      dating <- read.csv("profiles.csv")
+      attach(dating)
+      essays <- dating[,7:16]
+      essays <- apply(essays,2,as.character) 
+      bruh <- apply(essays,2,nchar)
+      sums <- apply(bruh,1,sum)
+      dating$nchar <- sums
+      select <- input$menu
+      if (select == "smokes") {
+        ok <- ggplot(data = dating) +
+          geom_histogram(mapping = aes(x = nchar, fill = smokes)) +
+          xlim(0,20000)
+      }
+      if (select == "drinks") {
+        ok <- ggplot(data = dating) +
+          geom_histogram(mapping = aes(x = nchar, fill = drinks)) +
+          xlim(0,20000)
+      }
+      if (select == "body_type") {
+        ok <- ggplot(data = dating) +
+          geom_histogram(mapping = aes(x = nchar, fill = body_type)) +
+          xlim(0,20000)
+      }
+      ok
+    })
+    
+    output$heightPlot <- renderPlot({
+      
+    })
+    
+    output$noAnsPlot <- renderPlot({
+      
+    })
+}
+# Run the application 
+shinyApp(ui = ui, server = server, options = list(height = 500))
+```
+
+View(dating)
+
+essays <- dating[,7:16]
+dating[,7:16] <- lapply(dating[,7:16],as.character)
+dating$word_count <- apply(dating[,7:26],2,nchar)
+men <- filter(dating, sex == "m")
+men_total <- mean(men$word_count, na.rm = T)
+women <- filter(dating, sex == "f")
+women_total <- mean(women$word_count, na.rm = T)
+
+
+summary(dating$age)
+factor(dating$drugs)
+table(dating$drugs)
+ggplot(data = dating) +
+  geom_bar(mapping = aes(x = drugs)) +
+  coord_flip()
+ggplot(data = dating) + 
+  geom_bar(mapping = aes(x = body_type)) +
+  coord_flip()
+ggplot(data = dating) +
+  geom_bar(mapping = aes(x = offspring)) + 
+  coord_flip()
+#body type by age, gender, diet, smokes, drugs, height, ethnicity
+#orientation by religion, sex, star sign
+#sex by age
+
+white <- filter(dating, ethnicity == "white")
+jacked <- filter(white, body_type == "jacked")
+View(jacked$essay0)
+
+length(dating$age)
+
+goal: look at OkCupid Cupid to find partner
+ask Chris
+are most people on OkCupid educated? find yes or no
+filters by education
+if you want "x", you should look for "y"
+
