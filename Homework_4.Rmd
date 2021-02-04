@@ -1,0 +1,149 @@
+---
+title: "Homework_4"
+author: "Quinn Dellinger"
+date: "10/15/2019"
+output: html_document
+---
+
+---
+title: "STAT 385 Homework Assignment 04"
+author: ""
+date: "Due by 12:00 PM 10/26/2019"
+output: html_document
+---
+
+
+## HW 4 Problems
+
+Below you will find problems for you to complete as an individual. It is fine to discuss the homework problems with classmates, but cheating is prohibited and will be harshly penalized if detected.
+
+**For all problems below, only use base R plotting methods. Do not use tidyverse plotting methods.**
+
+### 1. Read https://data.cityofchicago.org/Health-Human-Services/Food-Inspections/4ijn-s7e5/ for more information about the [Chicago Food Inspections Data](https://uofi.box.com/shared/static/5637axblfhajotail80yw7j2s4r27hxd.csv) and do the following:
+
+
+a. create a visualization (plot) of at least two variables (excluding ID or label variables) using this dataset
+
+``` {r 1a}
+food_data<-read.csv("Food_Inspections.csv")
+results <- food_data$Results
+risk <- food_data$Risk
+hmm <- t(table(results,risk))
+hmm <- hmm[3:5,2:6]
+barplot(hmm, beside = T, legend.text = c("Risk 1 (High)","Risk 2 (Medium)","Risk 3 (Low)"), main = "Health Inspection Risk & Results in Chicago", xlab = "Result Type", axes = F, args.legend = list(bty = "n",x = "topleft"))
+```
+
+b. explain what is good and what is bad about the visualization
+
+The graph lets us see easily for each category of test result what kind of safety risk the business posed upon inspection, but there's a lot of data categories to go through.
+
+c. show a substantially improved visualization
+
+```{r 1c}
+restaurant<-which(food_data$Facility.Type == "Restaurant")
+passers<-which(food_data$Results == "Pass")
+passing_restaurants<-intersect(restaurant,passers)
+restaurant_risk<-food_data$Risk[passing_restaurants]
+restaurant_risk<-factor(restaurant_risk)
+restaurant_results<-food_data$Results[passing_restaurants]
+restaurant_results<-factor(restaurant_results)
+hmm2 <- table(restaurant_results, restaurant_risk)
+barplot(hmm2, beside = T, main = "Health Risk Levels for Inspection Passing Chicago Restaurants", xlab = "Test Result", ylab = "Health Risk Level", col = c("lightblue4","lightblue2","lightblue"), axes = F)
+```
+
+d. describe the improvement and why the improved plot in **part 1c** helps the reader or viewer more than the original plot in **part 1a**.
+
+The improvement is meant to focus on a specific subset of data, in this case restaurants, and the graph makes it very apparant what result should be gleamed from the data. Color shading is added to make it look nicer; white space is utilized to make viewing easier, and the most important data, that being the high risk restaurants, is viewed first, being that it's at the top left. 
+
+
+### 2. Read https://data.cityofchicago.org/Health-Human-Services/Food-Inspections/4ijn-s7e5/ for more information about the [Chicago Food Inspections Data](https://uofi.box.com/shared/static/5637axblfhajotail80yw7j2s4r27hxd.csv) and do the following:
+
+a. create a table of 3 or more descriptive statistics of your choice
+
+```{r 2a}
+stats<-table(restaurant_risk, restaurant_results)
+stats<-prop.table(stats)
+stats
+```
+
+b. redo the plot in **part 1c** but add one of the descriptive statistics from **part 2a** to the plot
+
+```{r 2b}
+barplot(hmm2, beside = T, main = "Health Risk Levels for Inspection Passing Chicago Restaurants", xlab = "Test Result", ylab = "Health Risk Level", col = c("lightblue4","lightblue2","lightblue"), axes = F)
+string <- 100*round(stats[1,1],digits = 4)
+string <- paste(as.character(string),"%", sep = "")
+string <- paste(string, " of high health risk restaurants in Chicago pass the health inspection", sep ="")
+mtext(text = string , side = 1, line = 4,col = 2)
+```
+
+c. write a brief explanatory narrative of the visualization in **part 2b**. In your explanation, be convincing and persuasive about your visualization. Attempt to highlight why this visualization is crucial to your imaginary supervisor.
+
+From this graph, it is quite clear that almost 80% of the restaurants as determined by the city of Chicago pose a high health risk to the city. If we get a Risk 3 rating on our next inspection, we can use this fact to market our restaurant as a superior and less risky place to eat. Using a gross-out marketing campaign would give us a high moral standing among the consumer base who want to eat in healthy establishments.
+
+
+### 3. Read https://www.tandfonline.com/doi/full/10.1080/10691898.2018.1434342 for information about the [SBA Business Loans Data](https://uofi.box.com/shared/static/vi37omgitiaa2yyplrom779qvwk1g14x.csv) and do the following:
+
+
+
+a. create a visualization (plot) of at least two variables (excluding ID or label variables) using this dataset
+
+```{r, 3a, warning = FALSE}
+loan_data<-read.csv("SBAnational.csv")
+loan_length<-loan_data$Term
+loan_amount<-as.numeric(loan_data$DisbursementGross)
+amount_to_term <- loan_amount/loan_length
+years<-loan_data$ApprovalFY
+plot(years,jitter(amount_to_term), main = "Average monthly loan payment over time", xlab = "Years", ylab="$", col = "lightblue2")
+```
+
+b. explain what is good and what is bad about the visualization
+
+The graph makes it easy to see how the bank makes loan decisions over time. The amount the bank disburses divided by the term length indicates how risky the investment is. Making this a ratio essentially standardizes all the laons on a similar scale. The higher the ratio, the riskier the investment, because they have less time to pay a larger amount per month. The graph allows us to see these riskier outliers, as well as a loan schedule given that the axis is time series data. We can also do some forecasting with this data as well, given some trend analysis.
+
+What's bad about the graph is that most of the data is within the lower parts of the y axis, so the graph gives an impression about the bank data which is not necessarily true. 
+
+c. show a substantially improved visualization
+
+``` {r, 3c, warning = FALSE}
+years<-as.numeric(years)
+ok <- hist(amount_to_term,years,breaks = 200,plot=F)
+ok$density <- ok$counts/sum(ok$counts)*100
+plot(ok,freq = F,col="lightblue2",xlim=c(0,3500),main = "Shares of monthly loan payments",xlab="Monthly Payment ($)",ylab = "Percentage",axes = F)
+axis(1,col = NA, col.ticks = 0)
+axis(2,col=NA,col.ticks =0)
+```
+
+d. describe the improvement and why the improved plot in **part 3c** helps the reader or viewer more than the original plot in **part 3a**.
+
+This graph makes it apparant, as opposed to the previous, that a majority of loans to small businesses have payments of 1000 or less. The outlines around the plot as well as axis lines and ticks are removed to get rid of clutter.  
+
+
+### 4. Read https://www.tandfonline.com/doi/full/10.1080/10691898.2018.1434342 for information about the [SBA Business Loans Data](https://uofi.box.com/shared/static/vi37omgitiaa2yyplrom779qvwk1g14x.csv) and do the following:
+
+a. create a table of descriptive statistics of your choice
+
+```{r 4a}
+mat <- summary(amount_to_term)
+mat
+median <- quantile(amount_to_term, probs=c(.5))
+rounded <- as.character(round(median, digits = 0))
+```
+
+b. redo the plot in **part 3c** but add one of the descriptive statistics from **part 4a** to the plot
+
+``` {r, 4b, warning = FALSE}
+#par(mfrow = c(1,2))
+#plot(years,jitter(amount_to_term), main = "Average monthly loan payment over time", xlab = "Years", ylab="$", col = "lightblue2")
+#I wanted to show both plots side by side, but it doesn't handle well.
+ok <- hist(amount_to_term,years,breaks = 200,plot=F)
+ok$density <- ok$counts/sum(ok$counts)*100
+plot(ok,freq = F,col="lightblue2",xlim=c(0,3500),main = "Shares of monthly loan payments",xlab="Monthly Payment ($)",ylab = "Percentage",axes = F)
+axis(1,col = NA, col.ticks = 0)
+axis(2,col=NA,col.ticks =0)
+string <- paste("50% of small business loans are made with an average monthly payment of $",rounded," or less.",sep="") 
+mtext(text = string , side = 1, line = 4,col = 2)
+```
+
+c. write a brief explanatory narrative of the visualization in **part 4b**. In your explanation, be convincing and persuasive about your visualization. Attempt to highlight why this visualization is crucial to your imaginary supervisor.
+
+From this graph we can see that 50% of small businesses have loans that make, on average, $575 in loan payments or less per month. On the other hand, we can see that the 50% of businesses who make payments above this are highly spread in terms of credit risk. In fact, this spread is upwards of about 100,000 dollars in average monthly payments. This tells us that most small businesses have not taken out large loans to expand their operations, which opens up a large market for small business consulting. We could specialize in finding ways to expand small businesses and leverage the untapped potential of bank financing, charging on the increased profits of the business, or perhaps asking for equity in exchange for our consulting services.

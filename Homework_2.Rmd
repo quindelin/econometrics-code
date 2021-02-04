@@ -1,0 +1,226 @@
+---
+title: "Homework 2"
+author: "Quinn Dellinger"
+date: "9/18/2019"
+output: html_document
+---
+
+## The Homework Problems
+
+Below you will find problems for you to complete as an individual. It is fine to discuss the homework problems with classmates, but cheating is prohibited and will be harshly penalized if detected.
+
+### 1. Do the following:
+
+a. create two vectors labelled `x` and `y`, each with 500 elements.  You can do this any way you like.  Combine these vectors into a matrix called `mat`.  Run the command `head(mat)`.
+
+```{r 1a}
+x<-seq(1,500,1)
+y<-seq(501,1000,1)
+mat<-matrix(c(x,y),nrow=500,ncol=2)
+colnames(mat)<-c("x","y")
+head(mat)
+```
+b. run the command `z <- rep(c(1,3), each = 250)`.  Combine `mat` and `z`.  Convert the matrix `mat` with columns `x`, `y`, and `z` into a data frame called `dat`. 
+
+```{r 1b}
+z<-rep(c(1,3),each=250)
+mat<-cbind(mat,z)
+dat<-as.data.frame(mat)
+```
+
+c. reassign `z` as a factor variable within the data frame `dat`.  Run the command `str(dat)`.  You should see something like:
+
+    'data.frame':	500 obs. of  3 variables:<br>
+    $ x: num  1.4176 1.25 -1.4528 -0.3946 0.0264 ...<br>
+    $ y: num  0.0736 -0.193 -0.3286 -0.9563 -0.1975 ...<br>
+    $ z: Factor w/ 2 levels "1","3": 1 1 1 1 1 1 1 1 1 1 ...
+    
+```{r 1c}    
+dat[,3]<-as.factor(dat[,3])
+str(dat)
+```
+
+
+d. run the following commands:
+
+```{r, eval=FALSE}
+2 + dat$z
+2 + as.numeric(dat$z)
+2 + as.numeric(levels(dat$z)[dat$z])
+```
+
+Carefully describe why the first line returned a warning message and both the second and third lines      did not.  Which of the three lines properly added 2 to the levels of the factor variable `z`? Why?
+
+The first line returned a warning message because it tried to add a numeric to a vector that has all its data in character type. The second line did not index the factor column correctly, while the third line did the operation correctly because it accessed the factor by its level indexes.
+
+e. remove the rows of `dat` corresponding to lowest 100 values of `x`.
+
+``` {r 1e}
+save<-dat
+dat<-dat[-c(order(dat[,1])[1:100]),1:3]
+dat<-save
+```
+
+### 2. With the `dat` dataset in problem 1, do the following:
+
+a. run the commands:
+
+```{r, eval=FALSE}
+set.seed(13)
+e <- rnorm(400)
+dat$x <- rnorm(400)
+dat$y <- dat$x * 2 + as.numeric(levels(dat$z)[dat$z]) + e
+zlist <- split(dat, f = dat$z)
+```
+
+Determine which level of `z` has a higher mean in `y`.  Report your results.
+```{r 2a}
+positions<-as.integer(dat$z)
+mean(dat$y[positions == 1])
+mean(dat$y[positions == 2])
+```
+
+The second level of z in y has a higher mean. 
+
+b.  The fourth line of the code in part a generates `y` as a linear function of the numeric variable `x` and the factor variable `z`.  Can you determine that the linear modeling assumptions are satisfied for the regression of `y` on `x` and `z`? Explain why or why not in detail. **Hint**: read the documentation of the `rnorm` function and examine its defaults.  The linear modeling assumptions are: 1) there is a linear relationship between the response variable and the predictor variables; 2) there is no auto-correlation (cases are independent); 3) errors are normally distributed; 4) the standard deviation of the errors are constant across all predictor variables (the values of `x` and the levels of `z` in this problem).  There is no need to use numerical or graphical summaries to verify whether or not these modeling assumptions hold, all of the necessary information is contained in the code chunk in part **a**.
+
+
+Interpreting the code in line four, I can say that the vector y is a function of 3 components. The first is the random variable x (with mean 0 and sd 1) multiplied by two, which now means it has sd of two. The second is the vector z which has 250 1's (level 1) and 250 3's. The third component is e, which is another random variable with mean 0 and sd 1. The first assumption is satisfied because y is made from x and z, so there must be a linear relationship. Since the components were randomly generated, there would be no auto-correlation. The levels of z would make it so that the residuals of the model wouldn't have a mean of 0. Between levels, they would, but combined, this is not guaranteed. 
+
+### 3. Using functions, lists, matrices and vectors, complete the following:
+
+a. place the first 5 letters of the alphabet into a list
+
+```{r 3a}
+first_five <- letters[1:5]
+bruh <- list(first_five)
+```
+
+b. place a random set of 2 integers as a new component of the list made in part **a**  
+
+```{r 3b}
+set <- sample(1:50,2)
+bruh<-append(bruh, set)
+```
+
+c. create a matrix with two columns such that column 1 contains the 5 letters repeating, column 2 contains the 2 integers repeating, and column 3 that shows all possible pairs of the elements of the first 2 columns
+
+```{r 3c}
+trix <- matrix(NA, nrow = 21, ncol = 3)
+trix[,1][1:10]<-rep(first_five,2)
+trix[,2][1:10]<-rep(set,5)
+combine<-c(set,first_five)
+how<-combn(combine,2)
+pairs<-c()
+for (i in 1:ncol(how)) {
+pair<-c(paste(how[1,i],how[2,i],sep=","))
+pairs<-append(pairs,pair)
+}
+trix[,3]<-pairs
+trix
+```
+
+d. add a 4th column to the matrix from part **c** that is a randomized ordering of the pairs of the 3rd column
+
+```{r 3d}
+fourth<-sample(pairs)
+trix<-cbind(trix,fourth)
+trix
+```
+
+
+### 4. Use the CCSO Bookings Data to accomplish the following:
+
+a. read in the data using R's default method for comma separated files and show the data dimension
+
+``` {r 4a}
+bookings<-read.csv("/Users/quinndellinger/Documents/School/Stats/DataSets/CCSO Data.csv", header = TRUE)
+dim(bookings)
+```
+b. show only the 2012 bookings for people ages 17-23 years old not residing in Illinois and show the data dimension
+
+``` {r 4b}
+state<-which(bookings$STATE != "ILLINOIS")
+age<-which(bookings$Age.at.Arrest >= 17 & bookings$Age.at.Arrest <= 23)
+dates<-bookings[,1]
+dates<-as.Date(dates, format = "%m/%d/%Y")
+years<-format(dates, "%Y")
+years<-as.numeric(years)
+year<-which(years == 2012)
+rows<-intersect(intersect(state,age),year)
+head(bookings[rows,])
+dim(bookings[rows,])
+```
+
+c. show only the bookings for people who have employment status as "student" booked after the year 2012 residing in Danville and show the data dimension
+
+``` {r 4c}
+student<-which(bookings$EMPLOYMENT.STATUS == "Student")
+the_ville <- which(bookings$CITY == "DANVILLE")
+year<-which(years > 2012)
+rows<-intersect(intersect(student,the_ville),year)
+head(bookings[rows,])
+dim(bookings[rows,])
+```
+
+d. show only the bookings for Asian people residing in the cities of Champaign or Urbana and show the data dimension
+
+``` {r 4d}
+asian<-which(bookings$RACE == "Asian/Pacific Islander")
+two_cities<-which(bookings$CITY == "CHAMPAIGN" | bookings$CITY == "URBANA")
+rows<-intersect(asian,two_cities)
+head(bookings[rows,])
+dim(bookings[rows,])
+```
+
+### 5. Use the CCSO Bookings Data to accomplish the following:
+
+a. read in the data using the **data.table** package and show the data dimension
+
+``` {r 5a}
+install.packages("data.table", repos = "https://cran.r-project.org/web/packages/data.table/index.html")
+library(data.table)
+data<-fread("/Users/quinndellinger/Documents/School/Stats/DataSets/CCSO Data.csv")
+dim(data)
+```
+
+b. show only the 2012 bookings for people ages 17-23 years old not residing in Illinois and show the data dimension
+
+``` {r 5b}
+ans<-data[,1][[1]]
+ans<-as.Date(ans, format="%m/%d/%Y")
+years<-format(ans,"%Y")
+year<-which(years == 2012)
+age<-data[,"Age at Arrest"]
+ages<-which(age >= 17 & age <= 23)
+states<-data[,"STATE"]
+state<-which(states != "ILLINOIS")
+rows<-intersect(intersect(year,ages),state)
+total<-data[rows,]
+head(total)
+dim(total)
+```
+
+c. show only the bookings for people who have employment status as "student" booked after the year 2012 residing in Danville and show the data dimension
+
+``` {r 5c}
+student<-data[,"EMPLOYMENT STATUS"]
+students<-which(student == "Student")
+year<-which(years > 2012)
+city<-which(data[,"CITY"] == "DANVILLE")
+rows<-intersect(intersect(students,year),city)
+answer<-data[rows,]
+head(answer)
+dim(answer)
+```
+
+d. show only the bookings for Asian people residing in the cities of Champaign or Urbana and show the data dimension
+
+``` {r 5d}
+asains<-which(data[,"RACE"] == "Asian/Pacific Islander")
+two_cities<-which(data[,"CITY"] == "CHAMPAIGN" | data[,"CITY"] == "URBANA")
+rows<-intersect(asains,two_cities)
+answer<-data[rows,]
+head(answer)
+dim(answer)
+```

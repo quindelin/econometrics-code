@@ -1,0 +1,151 @@
+---
+title: "STAT 385 Fall 2019 Homework Assignment 01"
+author: "Quinn Dellinger"
+date: "Due by 12:00 PM 09/14/2019"
+output: html_document
+---
+
+## The Homework Problems
+
+Below you will find problems for you to complete as an individual. It is fine to discuss the homework problems with classmates, but cheating is prohibited and will be harshly penalized if detected.
+
+### 1. With the `data(pressure)` dataset in R, do the following:
+
+a. run the command that shows the help page of the median function  
+```{r 1a}
+help(median)
+```
+b. show the first 10 rows and 2 columns of the `data(pressure)` dataset  
+```{r 1b}
+head(pressure, n=10L)  
+```
+c. run the command `head(pressure)`  
+```{r 1c}
+head(pressure)  
+```
+d. describe the differences between parts **b** and **c**.  
+
+The default method for head will show the first six lines for any data type  
+
+### 2. With the `data(cars)` dataset in R, compute the following:
+a. the median of the stopping distance  
+```{r 2a}
+median(cars[,2])  
+```
+b. the mean of the speed  
+```{r 2b}
+mean(cars[,1])  
+```
+c. the five number summary of both the distance and speed  
+```{r 2c}
+summary(cars[,1])  
+
+summary(cars[,2])  
+```
+d. the plot of the stopping distance (vertical axis) versus the speed (horizontal axis) making sure the axes are written exactly as "distance" and "speed", while the title as "Speed and Stopping Distances of Cars".  
+```{r 2d}
+attach(cars)  
+
+plot(speed,dist, xlab="speed", ylab="distance")  
+
+title("Speed and Stopping Distances of Cars") 
+```
+
+### 3. With the `data(iris)` dataset in R, do the following calculations:
+
+a. the sum of the 25th and 26th versicolor iris's sepal lengths divided by 2  
+```{r 3a}
+is_versicolor<-iris$Species == "versicolor"  
+
+versicolor_rows<-which(is_versicolor)  
+
+versicolor_data<-iris[versicolor_rows,]  
+
+answer<-(versicolor_data[25,1]+versicolor_data[26,1])/2  
+
+print(answer)
+```
+b. the sum of all petal lengths among all species of iris that are between 0 cm and 3 cm  
+```{r 3b}
+is_small<-iris$Petal.Length <=3  
+
+print(sum(iris[is_small,3]))  
+```
+c. assuming `x` equals the 10th virginica iris, then $4\cdot x/2^3$  
+```{r 3c}
+is_virginica<-iris$Species == "virginica"  
+
+virginica_rows<-which(is_virginica)  
+
+virginica_data<-iris[virginica_rows,]  
+
+variable<-virginica_data[10,]  
+
+print(4*(variable/(2^3))) 
+
+head(variable)  
+```
+d. assuming `x` equals the sum of all setosa sepal widths, then $4\cdot(x/2)^3$.  
+```{r 3d}
+is_setosa<-iris$Species == "setosa"  
+
+setosa_rows<-which(is_setosa)  
+
+setosa_data<-iris[setosa_rows,]  
+
+answer<-(sum(setosa_data[,2]))  
+
+print(4*(answer/2)^3)  
+```
+### 4. Using the Instructor Notes from Week 03, address the following:
+
+a. run the code that appears in the "Try This at Home" section at the very bottom  
+```{r 4a}
+set.seed(13) ## set the random seed  
+
+x <- rnorm(n = 20) ## generate predictor variable  
+
+y <- rnorm(n = 20, mean = x) ## generate response variable  
+
+plot(y ~ x, pch = 19) ## plot (x,y) pairs  
+
+dat <- data.frame(y = y, x = x)  
+
+model <- lm(y ~ x, data = dat)  
+
+summary(model)  
+```
+b. change the seed number in the `set.seed()` command from 13 to 14. Then, re-run the code in part **a**.  
+```{r 4b}
+set.seed(14) ## set the random seed  
+
+x <- rnorm(n = 20) ## generate predictor variable  
+
+y <- rnorm(n = 20, mean = x) ## generate response variable  
+
+plot(y ~ x, pch = 19) ## plot (x,y) pairs  
+
+dat <- data.frame(y = y, x = x)  
+
+model <- lm(y ~ x, data = dat)  
+
+summary(model)  
+```
+c. Is there a difference between the results of parts **a** and **b**? If so, describe some of the obvious differences.  
+
+The main difference is that the random numbers are different.  The distribution will be different, but both are in essense random distributions across y and x with a trend around y = 1x, though not exactly. Their coefficients and distributions differ because the seed used to generate them is different. 
+
+d. Why is it important to set the random seed at the beginning of a simulation?  
+
+The random seed sets the mathemeatical function that will produce pseudorandom numbers. If you use the same seed, you will see a pattern emerge, so it is imporant to set before you start.   
+
+### 5. Find images that address the following:
+
+a. a screenshot that shows your personal repo in GitHub Enterprise
+![](/Users/quinndellinger/Documents/School/Stats/Screen Shot 2019-09-05 at 6.09.33 PM.png)
+b. a screenshot of the Git terminal (or shell) open within RStudio
+![](/Users/quinndellinger/Documents/School/Stats/Screen Shot 2019-09-05 at 6.10.20 PM.png)
+c. a screenshot of RStudio with the 4 panes basic such that there's a Git tab in the top right pane, and the files in the repo in the bottom right pane
+![](/Users/quinndellinger/Documents/School/Stats/Screen Shot 2019-09-05 at 6.10.45 PM.png)
+d. the push/pull pop up window of RStudio with the final commit message of your homework submission.
+![](/Users/quinndellinger/Documents/School/Stats/Screen Shot 2019-09-05 at 6.11.17 PM.png)

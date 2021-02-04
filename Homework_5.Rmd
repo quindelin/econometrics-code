@@ -1,0 +1,408 @@
+---
+title: "Homework 5"
+author: "Quinn Dellinger"
+date: "10/31/2019"
+output: html_document
+---
+
+---
+title: "STAT 385 Homework Assignment 05"
+author: ""
+date: "Due by 12:00 PM 11/16/2019"
+output: html_document
+---
+
+library(tidyverse)
+library(doParallel)
+library(foreach)
+
+## HW 5 Problems
+
+Below you will find problems for you to complete as an individual. It is fine to discuss the homework problems with classmates, but cheating is prohibited and will be harshly penalized if detected.
+
+
+### 1. Using the **ggplot** function and tidyverse functionality, do the following visualizations:
+
+a. recreate your improved visualization in **problem 2c of HW04**
+
+```{r, 1a, warning = FALSE}
+library(tidyverse)
+food_data<-read.csv("Food_Inspections.csv")
+restaurant<-food_data[which(food_data$Facility.Type == "Restaurant"),]
+passing_restaurants <- restaurant[restaurant$Results == "Pass",]
+ggplot(data = passing_restaurants) +
+  geom_bar(mapping = aes(x = Risk, fill = Risk)) +
+  labs(title = "Health Risk Levels for Inspection Passing Chicago Restaurants") +
+  ylab("Count") +
+  xlab("Health Risk")
+```
+
+b. add a new visually appealing layer to the plot that helps clarify the plot and separately include a short description beneath the plot, such as "Fig. 1 shows..."
+
+```{r 1b}
+library(tidyverse)
+ggplot(data = passing_restaurants) +
+  geom_bar(mapping = aes(x = Risk, fill = Risk)) +
+  labs(title = "Health Risk Levels for Inspection Passing Chicago Restaurants", caption = "Figure 1 shows the amount of health risk ratings given to inspection passing restaurants") +
+  ylab("Count") +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        panel.background = element_blank(),axis.title.x=element_blank())
+```
+
+c. recreate your improved visualization in **problem 4c of HW04**
+
+```{r, 1c, warning = FALSE}
+library(tidyverse)
+loan_data<-read.csv("SBAnational.csv")
+loan_length<-loan_data$Term
+loan_amount<-as.numeric(loan_data$DisbursementGross)
+amount_to_term <- loan_amount/loan_length
+years<-loan_data$ApprovalFY
+years<-as.numeric(years)
+data <- as.data.frame(cbind(years,amount_to_term))
+ggplot(data,aes(x=amount_to_term)) +
+  geom_histogram(aes(y = ..count../sum(..count..)), fill = "lightblue1", bins = 10, color = "black") +
+  xlim(0,4000) +
+  ylab("Proportion") +
+  xlab("Monthly loan payment") +
+  labs(title = "Shares of monthly loan payments")
+```
+
+d. add a new visually appealing layer to the plot that helps clarify the plot and separately include a short description beneath the plot, such as "Fig. 2 shows..."
+
+```{r, 1d, warning = FALSE}
+library(tidyverse)
+ggplot(data,aes(x=amount_to_term)) +
+  geom_histogram(aes(y = ..count../sum(..count..)), fill = "lightblue1", bins = 10, color = "black") +
+  xlim(0,4000) +
+  ylab("Proportion") +
+  xlab("Monthly loan payment ($)") +
+  labs(title = "Shares of monthly loan payments", subtitle = "Fig. 2 shows the distribution of monthly loan payments.", caption = "This was calculated using the total disbursement over the total months the loan lasts                                ") +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        panel.background = element_blank())
+```
+
+### 2. Successfully import the US Natality Data (for year 2015). The necessary data links are in the Datasets file on Prof. Kinson's course website. One is a single csv file 1.9 GB in size. If your computer cannot handle that processing, do use the partitioned version of the data, which are 20 csv files of the same US Natality Data.
+
+#### **Bonus (worth 5 additional points, i.e. your max HW 05 score could be 15 out of 10): do problem 2 using parallel programming ideas (particularly with foreach) discussed in class. No outside functions/packages other than those discussed in the notes on parallel programming.**
+
+```{r, 2a, warning = FALSE}
+natality_data <- read.csv(url("https://uofi.box.com/shared/static/4133zicq6vjuceoy00nmotaqynbg7d4t.csv"))
+
+#I tried putting the 20 partitioned files together 
+#but the code below gives the error of reaching the vector memory limit
+# library(doParallel)
+# library(foreach)
+# c1 <- makeCluster(1)
+# registerDoParallel(c1)
+# #This code makes a list of lists (of lists) with each spreadsheet as an element
+# temp <- foreach (i = 1:20) %dopar% {
+#   data <- read.csv(paste("/Users/quinndellinger/Documents/School/Stats/GitHub/qpd2/Homework 5/natality_data/",i,".csv",sep=""))
+# }
+# #When I try to turn it into something I can work with in ggplot, I run out of memory
+# natality_data <- apply(matrix(temp),1,unlist)
+# stopCluster(c1)
+```
+
+### 3. Using the **ggplot** function and tidyverse functionality, recreate or reimagine the following visualizations using the appropriate data. Be sure to use the visual design considerations from Knaflic's **Storytelling with Data**.
+
+a. The image below uses the US Natality Data. Also, explain the image with Markdown syntax.
+
+![](https://uofi.box.com/shared/static/ba8f8dxj1mbyedrcejur7bb682t8p4mg.png)
+
+``` {r, 3a, warning = FALSE}
+#MBSTATE_REC - 1 is born inside, 2 is born outside
+#MRACE15
+#MEDUC 6 is bachelor - 7 & 8 above is more
+library(tidyverse)
+asains <- filter(natality_data, MRACE15 == c(4,5,6,7,8,9))
+educated <- filter(asains, MEDUC == c(6,7,8))
+educated <- filter(educated, MBSTATE_REC == c(1,2))
+educated$MBSTATE_REC <- factor(educated$MBSTATE_REC, labels = c("Born inside US","Born outside US"))
+educated$MEDUC <- as.character(educated$MEDUC)
+educated$MRACE15 <- factor(educated$MRACE15, labels = c("Asain Indian","Chinese","Filipino","Japanese","Korean","Vietnamese"))
+
+# 04 Asian Indian (only)
+# 05 Chinese (only)
+# 06 Filipino (only)
+# 07 Japanese (only)
+# 08 Korean (only)
+# 09 Vietnamese (only)
+
+ggplot(data = educated) +
+  geom_bar(mapping = aes(x = MRACE15, fill = MEDUC)) +
+  scale_fill_discrete(name = c("Education"),labels = c("Bachelors","Masters","Doctorate")) +
+  coord_flip() +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        panel.background = element_blank()) +
+  xlab("") +
+  ylab("Number") +
+  facet_wrap(~factor(MBSTATE_REC), nrow = 2, ncol = 1) +
+  ggtitle("Educational attainment for Asain-American mothers")
+```
+
+The graphs shows that a far greater number of Asain-American mothers were born outside the US, with most of them being Chinese or Indian. It is intersting to note that more than a third of the Indian mothers born inside the US that went to college, went beyond and got doctorate degree.
+
+b. The image below uses the US Natality Data. Also, explain the image with Markdown syntax (do not include the explanation within the visualization).
+
+![](https://uofi.box.com/shared/static/1b5n0frv30n5bf3un7pldmxtf6lvwi75.png)
+
+```{r, 2b, warning = FALSE}
+#MAGER9 - 5-9
+old <- filter(asains, MAGER9 == c(5,6,7,8,9))
+old <- filter(old, MBSTATE_REC == c(1,2))
+old$MBSTATE_REC <- factor(old$MBSTATE_REC, labels = c("Born inside US","Born outside US"))
+old$MAGER9 <- factor(old$MAGER9, labels = c("30-34","35-39","40-44","45-50","50-54"))
+old$MRACE15 <- factor(old$MRACE15, labels = c("Asain Indian","Chinese","Filipino","Japanese","Korean","Vietnamese"))
+ggplot(data = old) +
+  geom_bar(mapping = aes(x = MRACE15, fill = MAGER9)) +
+  scale_fill_discrete(name = c("Age"),labels = c("30-34","35-39","40-44","45-50","50-54")) +
+  coord_flip() +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        panel.background = element_blank()) +
+  xlab("") +
+  ylab("Number") +
+  facet_wrap(~factor(MBSTATE_REC), nrow = 2, ncol = 1) +
+  ggtitle("Distributed ages of Asain-American mothers")
+```
+
+I like this image better than the image given because it shows the counts rather than the precentages, which I believe to be more informative, given that all of the racial gropus were pretty similarly made up in terms of age distribution. This graph shows the age distributions as well as the total amounts of the age groups, which is more helpful. It's very interesting to note that most of the mothers are Asain Indians that had their babies when they were 30-34 years old, and almost no women had a child past the age of 44. 
+
+c. The image below uses the Chicago Food Inspections Data [link here](https://uofi.box.com/shared/static/5637axblfhajotail80yw7j2s4r27hxd.csv). Also, explain the image with Markdown syntax (do not include the explanation within the visualization).
+
+![](https://uofi.box.com/shared/static/xn71gksmqvz6z30i145c2pnwzrtzblh4.png)
+
+```{r 3c}
+library(tidyverse)
+pass_fail <- filter(food_data, Results == "Pass" | Results == "Fail")
+pass_fail$Inspection.Date <- as.Date(pass_fail$Inspection.Date, format = '%Y-%m-%d')
+pass_fail <- filter(pass_fail, Inspection.Date >= "2015-01-01")
+pass_fail <- filter(pass_fail, Inspection.Date <= "2017-01-01")
+plot1 <- ggplot(data = pass_fail) +
+  geom_point(mapping = aes(y = Latitude, x = Longitude, color = Results)) +
+  geom_vline(xintercept=-87.6298) +
+  geom_hline(yintercept=41.8781) +
+  xlab("") +
+  ylab("") +
+  labs(title = "Chicago Restaurants Failing to Pass Inspection 2015-2016") +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        panel.background = element_blank())
+```
+![](/Users/quinndellinger/Documents/School/Stats/GitHub/qpd2/Homework 5/plot2.png)
+
+d. The image below uses the Chicago Food Inspections Data. Also, explain the image with Markdown syntax (do not include the explanation within the visualization).
+
+![](https://uofi.box.com/shared/static/19hgnx2otbpfk2i8kcnk9uthw4kirvux.png)
+```{r 3d}
+library(tidyverse)
+df <- as.data.frame(table(food_data$Inspection.Date))
+df$Var1 <- as.Date(df$Var1)
+
+plot2 <- ggplot(data = df, aes(x = Var1, y = Freq)) +
+  geom_line(color = "lightblue4") +
+  geom_area(fill = "lightblue3") +
+  ylab("") + 
+  xlab("") + 
+  labs(title = "Number of inspections by date") +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        panel.background = element_blank())
+```
+![](/Users/quinndellinger/Documents/School/Stats/GitHub/qpd2/Homework 5/plot1.png)
+### 4. Do the following:
+
+Redo problem 3 in HW03 using the parallel programming. Does parallel computing perform the tasks in parts c and e faster than the method that you used in HW03? Show your work including the runtimes for the un-parallelized and parallelized versions.
+
+```{r 4}
+library(doParallel)
+time1 <- system.time({
+c1 <- makeCluster(2)
+registerDoParallel(c1)
+
+data<-read.csv("dataHW3.csv")
+
+x<-data[,1]
+stat<-(mean(x)-10)/(sd(x)/sqrt(length(x)))
+stat
+
+mean_x<-mean(x)
+prime_matrix<-matrix(data = NA,nrow = 50, ncol = 10000)
+
+para <- foreach (i = 1:ncol(prime_matrix)) %dopar% {
+x_prime<-as.vector(sample(x,50,replace=TRUE))
+prime_matrix[,i]<-x_prime
+}
+
+
+run_stat<-function(v2){
+stat<-(mean(v2)-mean_x)/(sd(v2)/sqrt(length(v2)))
+}
+
+prime_matrix <- apply(matrix(para),1,unlist)
+resamples<-apply(prime_matrix,2,run_stat)
+
+hist(resamples, breaks = 20)
+})
+
+stopCluster(c1)
+
+time2 <- system.time({
+x<-data[,2]
+stat<-(mean(x)-10)/(sd(x)/sqrt(length(x)))
+stat
+mean_x<-mean(x)
+
+prime_matrix<-matrix(data = NA, nrow = 50, ncol = 10000)
+
+for(i in 1:ncol(prime_matrix)) {
+x_prime<-sample(x,length(x),replace=TRUE)
+prime_matrix[,i]<-x_prime
+}
+
+resamples<-apply(prime_matrix,2,run_stat)
+
+hist(resamples,breaks = 20)
+})
+time1<-time1[3]
+time2<-time2[3]
+paste("In parallel, the calculation took",time1,"seconds. Regularly, it took",time2,"seconds")
+```
+
+
+### 5. Problem in parallel coding
+install.packages("tidyverse")
+
+a. Install the **conformal.glm** R package which can be found at https://github.com/DEck13/conformal.glm.  
+Run the following code:
+```{r 5a}
+library(devtools)
+install_github(repo = "DEck13/conformal.glm", subdir="conformal.glm")
+library(conformal.glm)
+set.seed(13)
+n <- 250
+
+# generate predictors
+x <- runif(n)
+
+# set regression coefficient vector
+beta <- c(3, 5)
+
+# generate responses from a linear regression model
+y <- rnorm(n, mean = cbind(1, x) %*% beta, sd = 3)
+
+# store predictors and responses as a dataframe
+dat <- data.frame(y = y, x = x)
+
+# fit linear regression model
+model <- lm(y ~ x, data = dat)
+
+# obtain OLS estimator of beta
+betahat <- model$coefficients
+
+# convert predictors into a matrix
+Xk <- as.matrix(x, nrow = n)
+
+# extract internal model information, this is necessary for the assignment
+call <- model$call
+formula <- call$formula
+family <- "gaussian"
+link <- "identity"
+newdata.formula <- as.matrix(model.frame(formula, as.data.frame(dat))[, -1])
+
+# This function takes on a new (x,y) data point and reports a 
+# value corresponding to how similar this new data point is 
+# with the data that we generated, higher numbers are better.  
+# The goal is to use this function to get a range of new y 
+# values that agrees with our generated data at each x value in 
+# our generated data set.
+density_score <- function(ynew, xnew){
+  rank(phatxy(ynew = ynew, xnew = xnew, Yk = y, Xk = Xk, xnew.modmat = xnew, 
+    data = dat, formula = formula, family = family, link = link))[n+1]
+}
+
+# We try this out on the first x value in our generated data set. 
+# In order to do this we write two line searches
+xnew <- x[1]
+
+# start line searches at the predicted response value 
+# corresponding to xnew
+ystart <- ylwr <- yupr <- as.numeric(c(1,xnew) %*% betahat)
+score <- density_score(ynew = ystart, xnew = xnew)
+
+# line search 1: line search that estimates the largest y 
+# value corresponding to the first x value that agrees with 
+# our generated data 
+while(score > 13){
+  yupr <- yupr + 0.01
+  score <- density_score(ynew = yupr, xnew = xnew)
+}
+
+# line search 2: line search that estimates the smallest y 
+# value corresponding to the first x value that agrees with 
+# our generated data 
+score <- density_score(ynew = ystart, xnew = xnew)
+while(score > 13){
+  ylwr <- ylwr - 0.01
+  score <- density_score(ynew = ylwr, xnew = xnew)
+}
+```
+
+b. Write a function which runs the two line searches in part **a** for the jth generated predictor value.
+
+```{r 5b}
+library(conformal.glm)
+line_search <- function(jth) {
+  xnew <- x[jth]
+  ystart <- ylwr <- yupr <- as.numeric(c(1,xnew) %*% betahat)
+  score <- density_score(ynew = ystart, xnew = xnew)
+  while(score > 13){
+    yupr <- yupr + 0.01
+    score <- density_score(ynew = yupr, xnew = xnew)
+  }
+  score <- density_score(ynew = ystart, xnew = xnew)
+  while(score > 13){
+    ylwr <- ylwr - 0.01
+    score <- density_score(ynew = ylwr, xnew = xnew)
+  }
+  finish <- c(ylwr,yupr)
+  return(finish)
+}
+```
+
+c. Use parallel programming to run the function you wrote in part **b**.  Save the output and record the time that it took to perform these calculations  *NOTE: It is not advised to use `detectCores` as an argument in defining the number of workers you want. It's much better to specify the number of workers explicitly.*
+
+```{r 5c}
+library(doParallel)
+library(conformal.glm)
+time1 <- system.time({
+c1 <- makeCluster(2)
+registerDoParallel(c1)
+help <- foreach(i = 1:250) %dopar% {
+  library(conformal.glm)
+  line_search(i)
+}
+})
+stopCluster(c1)
+time1 <- time1[3]
+```
+
+d. Redo the calculation in part **c** using ``lapply`` and record the time it took to run this job. Which method is faster?
+```{r 5d}
+time2 <- system.time({
+ok <- lapply(1:250,line_search)
+})
+time2 <- time2[3]
+time3 <- time2 - time1
+paste("Doing the calculation in parallel is faster by",time3,"seconds")
+```
+e. Using **ggplot**, plot the original data and depict lines of the lower and upper boundaries that you computed from part **c**. 
+
+```{r 5e}
+library(tidyverse)
+x<-as.data.frame(x)
+ok <- apply(matrix(ok),1,unlist)
+ggplot(data = dat) + 
+  geom_point(aes(x = x, y = y)) +
+  geom_hline(yintercept = ok[1]) +
+  geom_hline(yintercept = ok[2])
+```
+

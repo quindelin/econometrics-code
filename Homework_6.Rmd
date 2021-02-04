@@ -1,0 +1,87 @@
+---
+title: "STAT 385 Homework Assignment 06"
+author: "The Final Project Proposal"
+date: "Due by 11:59 PM 12/02/2019"
+output: html_document
+---
+
+# HW 6 Introduction
+
+The Final Project is a group demonstration in which students will form their own groups of *a minimum of 2 and maximum of 3*. All students will create a Shiny app following guidelines and references discussed in the last few weeks of the STAT 385 course. 
+
+**Shiny app**
+
+The Shiny app is a web-based interface for users to interact with data and see how certain statistical properties change as otheraspects change. The coding demonstration should utilize one of the datasets in the [Datasets.html](https://uofi.box.com/shared/static/kv89ff7n55bkjsxrsx9nlthpl1yocqpo.html) file on the course website (it was updated on November 6, 2019). The background information and links for those datasets will help students understand the data. See the following sites as exmaples of already made Shiny apps.
+
+- https://vnijs.shinyapps.io/radiant/?SSUID=f58d479fac
+
+- https://shiny.rstudio.com/gallery/movie-explorer.html
+
+- https://shiny.rstudio.com/gallery/retirement-simulation.html
+
+- https://github.com/rstudio/cheatsheets/raw/master/shiny.pdf
+
+
+**Presentation**
+
+Students should submit all code files used to create the Shiny app by 11:59 PM on December 19, 2019 (upload into Compass). Prior to that deadline all students will present their demonstrations as their final exam. Section 1 of STAT 385's presentations will be Thursday December 19, 2019 in Turner Hall W109 beginning at 8 am. Each group will get 4 minutes to present their demonstrations, with roughly 1 minute for questions (priority of asking questions belongs to the Instructor).
+
+
+**Grading**
+
+As mentioned in the syllabus, the Instructor will give a grade for the presentations. Following that grading, students in the group can decide to allocate the points in a way that is agreed upon by all members of the group with the following restrictions: No student's score can be > 100 or < 0. For example, if there are 3 people in a group and the Instructor's grade is a 90 out of 100, then the group has 90*3=270 points they can allocate. The standard grade will be an equal amount of points per student. Thus in the example, each student would receive a 90 out of 100 for their grade.
+
+***
+
+## HW 6 Problem
+
+1. By 11:59 PM on Monday December 2, 2019, all student groups will be required to submit a final project proposal and a storyboard (as a single Rmd file; this will likely be presented as a homework assignment). See Chapter 1 of Knaflic's **Storytelling with Data** for ideas on creating a storyboard. The proposal should include the following information:
+
+- group members' names
+
+- tentative title of the project
+
+- the dataset
+
+- summary of the intentions and goals of the project
+
+- storyboard
+
+![Source: C. Knaflic "Storytelling with Data" Fig .1.2](https://uofi.box.com/shared/static/27nlhwqte7b688vqrb0y8ewgz4wqbaop.png)
+<br>
+
+***
+
+Quinn Dellinger  
+Elizabeth Kepner  
+Matthew Weberski  
+
+
+**Title**: Who is on OKCupid?
+
+**Dataset**:
+OKCupid dataset: https://uofi.box.com/shared/static/oy32nc373w4jqz3kummksnw6wvhfrl7a.csv
+
+**Intentions and goals**:
+An app that can help users filter okcupid characteristics and give them a certain characteristic output to match with (ie star sign, education, etc). 
+
+**Storyboard**:
+
+ISSUE: dating apps are unreliable and it’s hard to really make a connection with someone. If you knew what you were looking for, it would be easier to make a successful match. 
+
+Demonstration of issue: singleness, almost 60000 people also on OkCupid trying to find another person.
+
+Shiny app demonstration: select identifying characteristics (age, gender, orientation, education level, etc) of people to show the average star sign in that group, ensuring a better match with a certain star sign. 
+
+Show:
+body type by gender
+distribution of certain attributes given a certain factor (age given gender, etc…)
+word map of bios given age
+word count in bios by age, gender
+word map by occupation
+height by occupation, gender, if they do smoke
+what characteristics most likely to not be answered
+
+Big idea: amount of variation probably means you can find someone just by law of big numbers. Maybe statistics can save our dating lives, for good!
+
+https://github-dev.cs.illinois.edu/qpd2/Shiny-Project
